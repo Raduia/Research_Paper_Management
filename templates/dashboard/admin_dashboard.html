@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero-band mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: linear-gradient(135deg, #0f172a, #334155);">
+    <div>
+        <h1 class="mb-2"><i class="fa-solid fa-shield-halved me-2 text-info"></i> Admin Workspace</h1>
+        <p class="mb-0 text-light opacity-75">System overview, user management, and platform analytics.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'admin_users' %}" class="btn btn-outline-light"><i class="fa-solid fa-users me-1"></i> Users</a>
+        <a href="{% url 'admin_all_papers' %}" class="btn btn-outline-light"><i class="fa-solid fa-file-lines me-1"></i> Papers</a>
+        <a href="{% url 'research_clusters' %}" class="btn btn-outline-light"><i class="fa-solid fa-diagram-project me-1"></i> Clusters</a>
+        <a href="{% url 'admin_system_settings' %}" class="btn btn-outline-light"><i class="fa-solid fa-gear me-1"></i> Settings</a>
+        <a href="/admin/" class="btn btn-light text-dark fw-bold"><i class="fa-brands fa-python me-1 text-primary"></i> Django</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-users me-1 text-primary"></i> Total users</div><div class="value">{{ total_users }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-user-graduate me-1 text-info"></i> Students</div><div class="value">{{ students }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-chalkboard-user me-1 text-warning"></i> Supervisors</div><div class="value">{{ supervisors }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-bolt me-1 text-success"></i> Active researchers</div><div class="value">{{ active_researchers }}</div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-regular fa-folder-open me-1 text-secondary"></i> Total papers</div><div class="value">{{ total_papers }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-hourglass-half me-1 text-warning"></i> Pending</div><div class="value">{{ pending_papers }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-check-circle me-1 text-success"></i> Approved</div><div class="value">{{ approved_papers }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-star-half-stroke me-1 text-primary"></i> Average score</div><div class="value">{{ avg_score }}</div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel shadow-sm border-0 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h5 mb-0"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> Recent Papers</h2>
+                <a href="{% url 'admin_all_papers' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle border-top">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Student</th>
+                            <th>Supervisor</th>
+                            <th>Status</th>
+                            <th class="text-end">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paper in recent_papers %}
+                            <tr>
+                                <td class="fw-medium text-dark"><i class="fa-regular fa-file-lines me-2 text-muted"></i>{{ paper.title|truncatechars:40 }}</td>
+                                <td>@{{ paper.student.username }}</td>
+                                <td>{% if paper.supervisor %}@{{ paper.supervisor.username }}{% else %}<span class="text-muted fst-italic">Unassigned</span>{% endif %}</td>
+                                <td><span class="status-pill status-{{ paper.status }}">{{ paper.get_status_display }}</span></td>
+                                <td class="text-end fw-bold text-primary">{{ paper.final_score }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-5"><i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i> No papers yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel mb-4 shadow-sm border-0">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0"><i class="fa-solid fa-chart-line me-2 text-info"></i> Research Trends</h2>
+                <a href="{% url 'research_clusters' %}" class="btn btn-sm btn-outline-info">Clusters</a>
+            </div>
+            <div class="d-flex flex-column gap-2">
+            {% for item in category_stats %}
+                <div class="d-flex justify-content-between align-items-center p-2 rounded bg-light border border-light">
+                    <span class="text-truncate me-2"><i class="fa-solid fa-tag me-2 text-muted"></i>{{ item.category__name|default:'Uncategorized' }}</span>
+                    <span class="badge bg-secondary">{{ item.paper_count }}</span>
+                </div>
+            {% empty %}
+                <p class="text-muted small mb-0 text-center py-2">No category data yet.</p>
+            {% endfor %}
+            </div>
+        </div>
+        <div class="panel shadow-sm border-0">
+            <h2 class="h5 mb-3"><i class="fa-solid fa-list-ul me-2 text-secondary"></i> System Activity</h2>
+            <div class="d-flex flex-column gap-3">
+            {% for activity in activities %}
+                <div class="small position-relative ps-3 border-start border-2 border-secondary">
+                    <strong class="d-block text-dark">{{ activity.action }}</strong>
+                    <div class="text-muted mt-1"><i class="fa-regular fa-user me-1"></i> @{{ activity.user.username }} <span class="mx-1">•</span> <i class="fa-regular fa-clock me-1"></i> {{ activity.created_at|date:"M d, H:i" }}</div>
+                </div>
+            {% empty %}
+                <p class="text-muted small mb-0 text-center py-3">No activity yet.</p>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero-band mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: linear-gradient(135deg, #1e293b, #475569);">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-light rounded-circle p-2" title="Back to Dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+        <div>
+            <h1 class="mb-1"><i class="fa-solid fa-user-graduate me-2 text-info"></i> {{ student.first_name }} {{ student.last_name }}</h1>
+            <p class="mb-0 text-light opacity-75">@{{ student.username }} <span class="mx-2">•</span> <i class="fa-solid fa-medal text-warning me-1"></i> {{ student.profile.reputation_level }}</p>
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="{% url 'chat_with_user' student.id %}" class="btn btn-outline-light btn-sm" title="Click to chat with {{ student.first_name }} {{ student.last_name }}"><i class="fa-solid fa-comments me-1"></i> Chat with Student</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-md-3"><div class="metric"><div class="label"><i class="fa-solid fa-file-lines me-1 text-primary"></i> Papers</div><div class="value">{{ papers_count }}</div></div></div>
+    <div class="col-sm-6 col-md-3"><div class="metric"><div class="label"><i class="fa-solid fa-star me-1 text-warning"></i> Avg Score</div><div class="value">{{ avg_score }}</div></div></div>
+    <div class="col-sm-6 col-md-3"><div class="metric"><div class="label"><i class="fa-solid fa-bullseye me-1 text-success"></i> Deadline Comp.</div><div class="value">{{ compliance_rate }}%</div></div></div>
+</div>
+
+<div class="panel shadow-sm border-0">
+    <h2 class="h5 mb-4"><i class="fa-solid fa-folder-open me-2 text-primary"></i> Research Papers</h2>
+    
+    <div class="row g-4">
+        {% for paper, risk in papers_with_risk %}
+            <div class="col-12 paper-card" id="paper-{{ paper.id }}">
+                <div class="card p-4 border-0 shadow-sm h-100 position-relative overflow-hidden">
+                    {% if risk.level == 'high' %}
+                        <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: var(--deadline-overdue);"></div>
+                    {% elif risk.level == 'medium' %}
+                        <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: var(--deadline-nearing);"></div>
+                    {% endif %}
+                    
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                        <div>
+                            <h3 class="h5 fw-bold mb-1">{{ paper.title }}</h3>
+                            <p class="text-muted small mb-2">
+                                <i class="fa-regular fa-newspaper me-1"></i> {{ paper.journal|default:'Journal not set' }}
+                            </p>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <span class="status-pill status-{{ paper.status }}"><i class="fa-solid fa-circle-dot me-1"></i> {{ paper.get_status_display }}</span>
+                                {% if risk.level == 'high' or risk.level == 'medium' %}
+                                    <span class="risk-badge risk-{{ risk.level }}" title="{{ risk.reasons|join:', ' }}">
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ risk.level|title }} Risk
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-md-end bg-light rounded p-2 text-center" style="min-width: 130px; border: 1px solid var(--line);">
+                            <div class="text-muted small text-uppercase fw-bold mb-1">Final Score</div>
+                            <div class="fs-4 fw-bold text-primary">{{ paper.final_score }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mt-2 small bg-light p-2 rounded mx-0">
+                        <div class="col-sm-6 col-md-3"><strong><i class="fa-solid fa-clock-rotate-left me-1 text-muted"></i> Revisions:</strong> {{ paper.revision_count }}</div>
+                        <div class="col-sm-6 col-md-4"><strong><i class="fa-solid fa-tag me-1 text-muted"></i> Category:</strong> {{ paper.category.name|default:'Not set' }}</div>
+                        <div class="col-sm-12 col-md-5">
+                            <strong><i class="fa-regular fa-clock me-1 text-muted"></i> Deadline:</strong>
+                            {% if paper.deadline %}
+                                <span class="deadline-indicator deadline-{{ paper.deadline_status }}"></span><span class="deadline-{{ paper.deadline_status }}">{{ paper.deadline|date:"M d, Y" }}</span>
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if paper.evaluation %}
+                        <div class="alert alert-info mt-3 py-2 px-3 small border-0 mb-0" style="background-color: var(--surface-soft); color: var(--text); border-left: 4px solid var(--brand) !important;">
+                            <i class="fa-solid fa-comment-dots me-2 text-primary"></i><strong>Last Evaluation:</strong> {{ paper.evaluation|truncatewords:28 }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+                        <a href="{% url 'evaluate_paper' paper.id %}" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-star me-1"></i> Evaluate</a>
+                        <a href="{% url 'request_revision' paper.id %}" class="btn btn-outline-primary btn-sm px-3"><i class="fa-solid fa-rotate-left me-1"></i> Request Revision</a>
+                        <a href="{% url 'approve_paper' paper.id %}" class="btn btn-success btn-sm px-3"><i class="fa-solid fa-check me-1"></i> Approve</a>
+                        <a href="{% url 'reject_paper' paper.id %}" class="btn btn-outline-danger btn-sm px-3"><i class="fa-solid fa-xmark me-1"></i> Reject</a>
+                        {% if paper.pdf %}
+                            <a href="{{ paper.pdf.url }}" class="btn btn-outline-secondary btn-sm ms-auto px-3" target="_blank"><i class="fa-regular fa-file-pdf me-1"></i> View PDF</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="text-center text-muted py-5 bg-light rounded border border-dashed">
+                    <i class="fa-solid fa-inbox fs-1 text-secondary mb-3"></i>
+                    <h4>No papers found</h4>
+                    <p>This student hasn't uploaded any research papers yet.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

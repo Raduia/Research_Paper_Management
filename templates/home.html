@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row align-items-center min-vh-75 py-5">
+    <div class="col-lg-6 mb-5 mb-lg-0">
+        <div class="pe-lg-5">
+            <h1 class="display-4 fw-bolder mb-4" style="letter-spacing: -1px; line-height: 1.1;">
+                Elevate your <span style="background: linear-gradient(135deg, var(--brand), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">research</span> management
+            </h1>
+            <p class="lead text-muted mb-5">
+                A unified platform for students and supervisors to track progress, evaluate quality, manage revisions, and accelerate academic publication.
+            </p>
+            
+            <div class="d-flex gap-3 flex-wrap">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'signup' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm fw-bold">Get Started</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-5 py-3 rounded-pill fw-bold bg-white">Sign In</a>
+                {% else %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm fw-bold">Go to Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="position-relative">
+            <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 bg-primary opacity-10 rounded-circle blur-3xl" style="filter: blur(60px); max-width: 500px; max-height: 500px; z-index: -1;"></div>
+            <div class="card border-0 shadow-lg overflow-hidden rounded-4">
+                <div class="bg-dark text-white p-3 d-flex gap-2">
+                    <div class="rounded-circle bg-danger" style="width: 12px; height: 12px;"></div>
+                    <div class="rounded-circle bg-warning" style="width: 12px; height: 12px;"></div>
+                    <div class="rounded-circle bg-success" style="width: 12px; height: 12px;"></div>
+                </div>
+                <div class="p-4 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary text-white p-2 rounded"><i class="fa-solid fa-file-lines"></i></div>
+                            <div>
+                                <div class="fw-bold text-dark">Optimization of Neural Networks</div>
+                                <div class="small text-muted">Submitted 2 hours ago</div>
+                            </div>
+                        </div>
+                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="fa-solid fa-clock me-1"></i> Pending Review</span>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="bg-white p-3 rounded border shadow-sm h-100 text-center">
+                                <div class="text-muted small mb-1 fw-bold">Quality Score</div>
+                                <div class="fs-3 fw-bolder text-primary">85.5</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="bg-white p-3 rounded border shadow-sm h-100 text-center">
+                                <div class="text-muted small mb-1 fw-bold">Risk Level</div>
+                                <div class="d-inline-flex align-items-center text-success bg-success-subtle px-2 py-1 rounded fw-bold small mt-1">
+                                    <i class="fa-solid fa-shield-check me-1"></i> Low
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-3 rounded border shadow-sm">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div class="small fw-bold">Consistency Progress</div>
+                            <div class="small text-success fw-bold">90%</div>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 90%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-5 py-5 mt-3 border-top">
+    <div class="col-md-4 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-4" style="width: 64px; height: 64px; font-size: 24px;">
+            <i class="fa-solid fa-chart-pie"></i>
+        </div>
+        <h3 class="h4 fw-bold mb-3">Multi-dimensional Scoring</h3>
+        <p class="text-muted">Evaluate papers based on quality, improvement, consistency, and collaboration to generate a holistic final score.</p>
+    </div>
+    <div class="col-md-4 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning rounded-circle mb-4" style="width: 64px; height: 64px; font-size: 24px;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="h4 fw-bold mb-3">Risk Detection Engine</h3>
+        <p class="text-muted">Automatically flag at-risk submissions, overdue deadlines, and stale drafts before they become problems.</p>
+    </div>
+    <div class="col-md-4 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle mb-4" style="width: 64px; height: 64px; font-size: 24px;">
+            <i class="fa-solid fa-medal"></i>
+        </div>
+        <h3 class="h4 fw-bold mb-3">Gamified Growth</h3>
+        <p class="text-muted">Motivate students with achievements, reputation levels, and visual progress tracking to encourage excellence.</p>
+    </div>
+</div>
+
+{% if can_select_supervisor %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm panel p-4 p-md-5 bg-white">
+            <h2 class="h3 mb-4 text-center">Select Your Supervisor</h2>
+            <form method="post" action="{% url 'select_supervisor' %}" class="d-flex gap-2 mx-auto" style="max-width: 500px;">
+                {% csrf_token %}
+                <select name="supervisor_id" class="form-select form-select-lg" required>
+                    <option value="" disabled {% if not selected_supervisor %}selected{% endif %}>Choose supervisor...</option>
+                    {% for sup in supervisors %}
+                        <option value="{{ sup.id }}" {% if selected_supervisor and selected_supervisor.id == sup.id %}selected{% endif %}>
+                            {{ sup.first_name }} {{ sup.last_name }} (@{{ sup.username }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-lg px-4"><i class="fa-solid fa-check"></i></button>
+            </form>
+            {% if supervisor_request and not approved_supervisor %}
+                <div class="alert alert-warning mt-3 mb-0">Your request to <strong>{{ selected_supervisor.get_full_name|default:selected_supervisor.username }}</strong> is pending approval.</div>
+            {% elif approved_supervisor %}
+                <div class="alert alert-success mt-3 mb-0">Your supervisor <strong>{{ approved_supervisor.get_full_name|default:approved_supervisor.username }}</strong> is approved and active.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

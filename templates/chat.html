@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero-band mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h1 class="mb-2"><i class="fa-solid fa-comments me-2"></i> Chat with {{ other_user.get_full_name|default:other_user.username }}</h1>
+        <p class="mb-0 text-muted">Send messages to your approved supervisor/student.</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+</div>
+
+<div class="panel shadow-sm border-0 mb-4">
+    <div class="p-4">
+        <div class="chat-window">
+            {% if messages_list %}
+                {% for message in messages_list %}
+                    <div class="d-flex mb-3 {% if message.sender == request.user %}justify-content-end{% else %}justify-content-start{% endif %}">
+                        <div class="p-3 rounded border" style="max-width: 75%; background: {% if message.sender == request.user %}#d1e7dd{% else %}#f8f9fa{% endif %};">
+                            <div class="small text-muted mb-1">{{ message.sender.get_full_name|default:message.sender.username }} · {{ message.created_at|date:'M d, Y H:i' }}</div>
+                            <div>{{ message.text|linebreaksbr }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5 text-muted">No messages yet. Start the conversation below.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="panel shadow-sm border-0">
+    <form method="post" action="{% url 'chat_with_user' other_user.id %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="message" class="form-label">Your message</label>
+            <textarea id="message" name="message" class="form-control" rows="4" placeholder="Type your message..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i> Send Message</button>
+    </form>
+</div>
+{% endblock %}

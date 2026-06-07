@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="text-center mb-5">{{ dashboard_title }}</h1>
+
+<div class="row g-4">
+    <!-- Portfolio Overview -->
+    <div class="col-md-4">
+        <div class="card dashboard-card h-100 border-primary">
+            <div class="card-body text-center">
+                <h4>📊 Portfolio Overview</h4>
+                <hr>
+                <h2 class="text-primary">{{ papers.count }}</h2>
+                <p class="text-muted">Total Research Papers</p>
+                <small class="text-success">Keep adding your research</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Research Papers -->
+    <div class="col-md-4">
+        <div class="card dashboard-card h-100 border-success">
+            <div class="card-body text-center">
+                <h4>📄 Research Papers</h4>
+                <hr>
+                <h2 class="text-success">{{ papers.count }}</h2>
+                <p class="text-muted">Papers Added</p>
+                {% if can_add_paper %}
+                    <a href="{% url 'add_paper' %}" class="btn btn-outline-success mt-3">Add New Paper</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Scoring & Achievements -->
+    <div class="col-md-4">
+        <div class="card dashboard-card h-100 border-warning">
+            <div class="card-body text-center">
+                <h4>🏆 Scoring & Achievements</h4>
+                <hr>
+                <h2 class="text-warning">0</h2>
+                <p class="text-muted">Total Points</p>
+                <small>Impact Factor • Citations • Publications</small>
+            </div>
+        </div>
+    </div>
+    <!-- Recent Activity -->
+
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header bg-light">
+                <h5>Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                {% if papers %}
+                    <ul class="list-group list-group-flush">
+                        {% for paper in papers %}
+                            <li class="list-group-item">
+                                <strong>{{ paper.title }}</strong> - {{ paper.journal }} ({{ paper.publication_date }})
+                                {% if role == 'supervisor' or role == 'admin' %}
+                                    <small class="text-muted">by {{ paper.student.username }}</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No papers added yet. 
+                        {% if can_add_paper %}
+                            <a href="{% url 'add_paper' %}">Add your first paper</a>.
+                        {% else %}
+                            Wait for papers to be added.
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

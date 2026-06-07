@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero-band mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: linear-gradient(135deg, #115e59, #0f766e);">
+    <div>
+        <h1 class="mb-2"><i class="fa-solid fa-chalkboard-user me-2"></i> Review Queue</h1>
+        <p class="mb-0">Evaluate quality, request revisions, and guide student growth.</p>
+    </div>
+    <span class="badge bg-white text-dark shadow-sm px-4 py-2 fs-6"><i class="fa-solid fa-file-lines me-2 text-primary"></i>{{ papers|length }} assigned papers</span>
+</div>
+
+<!-- At Risk Alert Panel -->
+{% if at_risk_papers %}
+<div class="alert alert-danger shadow-sm border-0 mb-4 rounded-3">
+    <div class="d-flex align-items-center mb-2">
+        <i class="fa-solid fa-triangle-exclamation fs-4 me-2"></i>
+        <h4 class="mb-0">Action Required: At-Risk Submissions</h4>
+    </div>
+    <p class="mb-3 text-danger-emphasis">The following papers require your immediate attention due to approaching deadlines, high revision counts, or stale drafts.</p>
+    <div class="row g-2">
+        {% for paper, risk in at_risk_papers %}
+        <div class="col-md-6">
+            <div class="p-3 bg-white border border-danger-subtle rounded d-flex justify-content-between align-items-center">
+                <div class="text-truncate me-3" style="max-width: 70%;">
+                    <strong>{{ paper.title }}</strong><br>
+                    <small class="text-muted">{{ paper.student.username }} · <span class="text-danger fw-bold">{{ risk.reasons|join:", " }}</span></small>
+                </div>
+                <a href="#paper-{{ paper.id }}" class="btn btn-sm btn-outline-danger">Review</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-hourglass-half me-1 text-warning"></i> Pending review</div><div class="value">{{ pending_count }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-circle-check me-1 text-success"></i> Approved</div><div class="value">{{ approved_count }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-rotate-left me-1 text-primary"></i> Revision requests</div><div class="value">{{ revision_count }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><div class="label"><i class="fa-solid fa-chart-pie me-1 text-info"></i> Acceptance rate</div><div class="value">{{ acceptance_rate }}%</div></div></div>
+</div>
+
+<div class="panel mb-4 shadow-sm border-0 bg-white">
+    <h2 class="h5 mb-3"><i class="fa-solid fa-bell me-2 text-warning"></i> Pending Supervision Requests</h2>
+    <div class="d-flex flex-column gap-3">
+        {% for req in supervisor_requests %}
+            <div class="border rounded p-3 bg-light d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                    <div>
+                        <strong>{{ req.student.first_name }} {{ req.student.last_name }}</strong>
+                        <div class="small text-muted">@{{ req.student.username }}</div>
+                    </div>
+                    <div class="text-end text-muted small">{{ req.created_at|date:'M d, Y H:i' }}</div>
+                </div>
+                <div class="d-flex flex-column flex-md-row gap-2">
+                    <div class="flex-grow-1 text-muted">Requested supervision from <strong>@{{ req.supervisor.username }}</strong>.</div>
+                    <div class="d-flex gap-2">
+                        <form method="post" action="{% url 'approve_supervisor_request' req.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form method="post" action="{% url 'reject_supervisor_request' req.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Reject</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-muted small mb-0">No pending supervision requests right now.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel shadow-sm border-0">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mb-4">
+                <h2 class="h4 mb-0"><i class="fa-solid fa-folder-tree me-2 text-primary"></i> Assigned Papers</h2>
+                <div class="input-group w-auto">
+                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                    <input type="search" id="searchInput" class="form-control border-start-0 ps-0" style="min-width: 260px;" placeholder="Search student, title, journal" onkeyup="filterPapers()">
+                </div>
+            </div>
+            
+            <div class="row g-4" id="papersContainer">
+                {% for paper, risk in papers_with_risk %}
+                    <div class="col-12 paper-card" id="paper-{{ paper.id }}">
+                        <div class="card p-4 border-0 shadow-sm h-100 position-relative overflow-hidden">
+                            {% if risk.level == 'high' %}
+                                <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: var(--deadline-overdue);"></div>
+                            {% elif risk.level == 'medium' %}
+                                <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: var(--deadline-nearing);"></div>
+                            {% endif %}
+                            
+                            <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                                <div>
+                                    <h3 class="h5 fw-bold mb-1">{{ paper.title }}</h3>
+                                    <p class="text-muted small mb-2">
+                                        <i class="fa-solid fa-user-graduate me-1"></i> <a href="{% url 'supervisor_student_detail' paper.student.id %}" class="text-decoration-none fw-bold">{{ paper.student.username }}</a>
+                                        <span class="mx-2">•</span> <i class="fa-regular fa-newspaper me-1"></i> {{ paper.journal|default:'Journal not set' }}
+                                    </p>
+                                    <div class="d-flex align-items-center flex-wrap gap-2">
+                                        <span class="status-pill status-{{ paper.status }}"><i class="fa-solid fa-circle-dot me-1"></i> {{ paper.get_status_display }}</span>
+                                        {% if risk.level == 'high' or risk.level == 'medium' %}
+                                            <span class="risk-badge risk-{{ risk.level }}" title="{{ risk.reasons|join:', ' }}">
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ risk.level|title }} Risk
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="text-md-end bg-light rounded p-2 text-center" style="min-width: 130px; border: 1px solid var(--line);">
+                                    <div class="text-muted small text-uppercase fw-bold mb-1">Final Score</div>
+                                    <div class="fs-4 fw-bold text-primary">{{ paper.final_score }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2 small bg-light p-2 rounded mx-0">
+                                <div class="col-sm-6 col-md-3"><strong><i class="fa-solid fa-clock-rotate-left me-1 text-muted"></i> Revisions:</strong> {{ paper.revision_count }}</div>
+                                <div class="col-sm-6 col-md-4"><strong><i class="fa-solid fa-tag me-1 text-muted"></i> Category:</strong> {{ paper.category.name|default:'Not set' }}</div>
+                                <div class="col-sm-12 col-md-5">
+                                    <strong><i class="fa-regular fa-clock me-1 text-muted"></i> Deadline:</strong>
+                                    {% if paper.deadline %}
+                                        <span class="deadline-indicator deadline-{{ paper.deadline_status }}"></span><span class="deadline-{{ paper.deadline_status }}">{{ paper.deadline|date:"M d, Y" }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if paper.evaluation %}
+                                <div class="alert alert-info mt-3 py-2 px-3 small border-0 mb-0" style="background-color: var(--surface-soft); color: var(--text); border-left: 4px solid var(--brand) !important;">
+                                    <i class="fa-solid fa-comment-dots me-2 text-primary"></i><strong>Last Evaluation:</strong> {{ paper.evaluation|truncatewords:28 }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+                                <a href="{% url 'evaluate_paper' paper.id %}" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-star me-1"></i> Evaluate</a>
+                                <form method="post" action="{% url 'request_revision' paper.id %}" class="d-inline-block me-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-primary btn-sm px-3"><i class="fa-solid fa-rotate-left me-1"></i> Request Revision</button>
+                                </form>
+                                <form method="post" action="{% url 'approve_paper' paper.id %}" class="d-inline-block me-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm px-3"><i class="fa-solid fa-check me-1"></i> Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'reject_paper' paper.id %}" class="d-inline-block">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm px-3"><i class="fa-solid fa-xmark me-1"></i> Reject</button>
+                                </form>
+                                <a href="{% url 'paper_detail' paper.id %}" class="btn btn-info btn-sm px-3 text-white"><i class="fa-solid fa-circle-info me-1"></i> Details & Comments</a>
+                                {% if paper.pdf %}
+                                    <a href="{{ paper.pdf.url }}" class="btn btn-outline-secondary btn-sm ms-auto px-3" target="_blank"><i class="fa-regular fa-file-pdf me-1"></i> View PDF</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="text-center text-muted py-5 bg-light rounded border border-dashed">
+                            <i class="fa-solid fa-inbox fs-1 text-secondary mb-3"></i>
+                            <h4>No assigned papers yet</h4>
+                            <p>Papers assigned to you for review will appear here.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- My Students Panel -->
+        <div class="panel mb-4 shadow-sm border-0 bg-white">
+            <h2 class="h5 mb-3"><i class="fa-solid fa-users me-2 text-primary"></i> My Students</h2>
+            <div class="d-flex flex-column gap-2">
+                {% for student in students %}
+                    <a href="{% url 'supervisor_student_detail' student.id %}" class="d-flex justify-content-between align-items-center p-2 rounded bg-light text-decoration-none border border-light custom-hover">
+                        <div>
+                            <div class="fw-bold text-dark">{{ student.first_name }} {{ student.last_name }}</div>
+                            <div class="small text-muted">@{{ student.username }}</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-muted small"></i>
+                    </a>
+                {% empty %}
+                    <p class="text-muted small mb-0">You are not supervising any students currently.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel mb-4 shadow-sm border-0">
+            <h2 class="h5 mb-3"><i class="fa-solid fa-book-journal-whills me-2 text-info"></i> Journal Tracking</h2>
+            <div class="d-flex flex-column gap-2">
+            {% for item in journal_stats %}
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                    <span class="text-truncate me-2" style="max-width: 80%;"><i class="fa-regular fa-newspaper text-muted me-2"></i>{{ item.journal }}</span>
+                    <span class="badge bg-light text-dark border">{{ item.paper_count }}</span>
+                </div>
+            {% empty %}
+                <p class="text-muted small mb-0 text-center py-2">No journal data yet.</p>
+            {% endfor %}
+            </div>
+        </div>
+        
+        <div class="panel shadow-sm border-0">
+            <h2 class="h5 mb-3"><i class="fa-solid fa-calendar-xmark me-2 text-danger"></i> Deadline Monitor</h2>
+            <div class="bg-danger-subtle p-3 rounded d-flex align-items-center gap-3 border border-danger-subtle">
+                <div class="fs-1 text-danger"><i class="fa-solid fa-stopwatch"></i></div>
+                <div>
+                    <h3 class="h3 mb-0 text-danger fw-bold">{{ overdue_count }}</h3>
+                    <p class="mb-0 text-danger-emphasis small">overdue papers pending review</p>
+                </div>
+            </div>
+            <p class="text-muted small mt-2 mb-0"><i class="fa-solid fa-circle-info me-1"></i> Overdue count ignores approved and rejected papers.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.custom-hover:hover { background-color: var(--surface-soft) !important; border-color: var(--line) !important; }
+</style>
+
+<script>
+function filterPapers() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.paper-card').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(input) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel mb-4 shadow-sm border-0">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0"><i class="fa-regular fa-file-lines me-2 text-primary"></i> Paper Details</h2>
+                <span class="status-pill status-{{ paper.status }}">{{ paper.get_status_display }}</span>
+            </div>
+            
+            <h3 class="h3 fw-bold mb-2">{{ paper.title }}</h3>
+            <p class="text-muted mb-3">
+                <i class="fa-solid fa-user-graduate me-1"></i> Student: <strong>{{ paper.student.username }}</strong>
+                <span class="mx-2">•</span> <i class="fa-solid fa-user-tie me-1"></i> Supervisor: <strong>{{ paper.supervisor.username|default:"None" }}</strong>
+            </p>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded border">
+                        <div class="text-muted small text-uppercase fw-bold mb-1">Current Score</div>
+                        <div class="fs-3 fw-bold text-primary">{{ paper.current_score }}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded border">
+                        <div class="text-muted small text-uppercase fw-bold mb-1">Final Score (with bonuses)</div>
+                        <div class="fs-3 fw-bold text-success">{{ paper.final_score }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="h5 mb-3">Abstract</h4>
+                <div class="p-3 bg-light rounded border">
+                    {{ paper.abstract|default:"No abstract provided." }}
+                </div>
+            </div>
+
+            {% if paper.pdf %}
+            <div class="mb-4">
+                <a href="{{ paper.pdf.url }}" class="btn btn-outline-info" target="_blank">
+                    <i class="fa-regular fa-file-pdf me-2"></i>View PDF
+                </a>
+            </div>
+            {% endif %}
+
+            <hr>
+            
+            <h4 class="h5 mt-4 mb-3"><i class="fa-solid fa-comments me-2 text-primary"></i> Discussion / Comments</h4>
+            <div class="d-flex flex-column gap-3 mb-4">
+                {% for comment in comments %}
+                    <div class="p-3 rounded border {% if comment.author == request.user %}bg-primary-subtle border-primary-subtle ms-4{% else %}bg-light me-4{% endif %}">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong class="{% if comment.author == request.user %}text-primary{% endif %}">
+                                {{ comment.author.username }} 
+                                {% if comment.author == paper.supervisor %}<span class="badge bg-secondary ms-1">Supervisor</span>{% endif %}
+                                {% if comment.author == paper.student %}<span class="badge bg-info ms-1">Student</span>{% endif %}
+                            </strong>
+                            <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <p class="mb-0">{{ comment.text|linebreaksbr }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center py-3 border rounded bg-light">No comments yet. Start the discussion!</p>
+                {% endfor %}
+            </div>
+
+            <form method="post" action="{% url 'add_comment' paper.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <textarea name="text" rows="3" class="form-control" placeholder="Add a comment..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i> Post Comment</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="panel shadow-sm border-0 mb-4">
+            <h2 class="h5 mb-3"><i class="fa-solid fa-star-half-stroke me-2 text-warning"></i> Evaluation History</h2>
+            <div class="d-flex flex-column gap-3">
+                {% for evaluation in evaluations %}
+                    <div class="border rounded p-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <strong class="fs-5">{{ evaluation.total_score }} / 100</strong>
+                            <span class="small text-muted">{{ evaluation.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="row g-2 small mb-3">
+                            <div class="col-6">Methodology: <strong>{{ evaluation.methodology_score }}</strong></div>
+                            <div class="col-6">Innovation: <strong>{{ evaluation.innovation_score }}</strong></div>
+                            <div class="col-6">Writing: <strong>{{ evaluation.writing_score }}</strong></div>
+                            <div class="col-6">Technical: <strong>{{ evaluation.technical_score }}</strong></div>
+                        </div>
+                        {% if evaluation.feedback %}
+                            <div class="p-2 bg-white rounded border small">
+                                <strong>Feedback:</strong><br>
+                                {{ evaluation.feedback }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center py-4 bg-light rounded border border-dashed mb-0">No evaluations yet.</p>
+                {% endfor %}
+            </div>
+            {% if role == 'supervisor' %}
+                <div class="mt-4">
+                    <a href="{% url 'evaluate_paper' paper.id %}" class="btn btn-outline-primary w-100">
+                        <i class="fa-solid fa-plus me-1"></i> New Evaluation
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="d-grid gap-2">
+            <a href="{% url 'dashboard' %}" class="btn btn-light border">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

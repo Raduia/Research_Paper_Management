@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'dashboard' %}" class="text-decoration-none mb-2 d-inline-block"><i class="fa-solid fa-arrow-left me-1"></i> Back to Admin Dashboard</a>
+        <h1 class="mb-0"><i class="fa-solid fa-gear text-primary me-2"></i> System Settings</h1>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="panel shadow-sm border-0 h-100">
+            <h2 class="h5 mb-4"><i class="fa-solid fa-tags me-2 text-info"></i> Research Categories</h2>
+            
+            <form method="post" class="mb-4 bg-light p-3 rounded border border-light">
+                {% csrf_token %}
+                <h3 class="h6 mb-3">Add New Category</h3>
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <input type="text" name="name" class="form-control" placeholder="Category Name" required>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="description" class="form-control" placeholder="Description">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in categories %}
+                        <tr>
+                            <td class="fw-bold">{{ cat.name }}</td>
+                            <td class="text-muted small">{{ cat.description }}</td>
+                            <td class="text-end">
+                                <form method="post" action="{% url 'admin_delete_category' cat.id %}" onsubmit="return confirm('Delete this category?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center py-3 text-muted">No categories defined.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="panel shadow-sm border-0 h-100">
+            <h2 class="h5 mb-4"><i class="fa-solid fa-database me-2 text-success"></i> Database Statistics</h2>
+            
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                        <i class="fa-regular fa-file-lines me-2 text-muted"></i> Total Papers
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ db_size_info.papers }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                        <i class="fa-solid fa-users me-2 text-muted"></i> Total Users
+                    </div>
+                    <span class="badge bg-info rounded-pill">{{ db_size_info.users }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                        <i class="fa-solid fa-tags me-2 text-muted"></i> Categories
+                    </div>
+                    <span class="badge bg-secondary rounded-pill">{{ db_size_info.categories }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                        <i class="fa-regular fa-star me-2 text-muted"></i> Evaluations
+                    </div>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ db_size_info.evaluations }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                        <i class="fa-solid fa-list-ul me-2 text-muted"></i> Activity Logs
+                    </div>
+                    <span class="badge bg-dark rounded-pill">{{ db_size_info.activity_logs }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

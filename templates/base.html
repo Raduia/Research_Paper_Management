@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResearchFlow</title>
+    <link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'fa-all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}">
+                <i class="fa-solid fa-graduation-cap me-2"></i>ResearchFlow
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <div class="navbar-nav ms-auto align-items-lg-center">
+                    {% if user.is_authenticated %}
+                        <a class="nav-link" href="{% url 'dashboard' %}"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
+                        <a class="nav-link" href="{% url 'profile' %}"><i class="fa-solid fa-user me-1"></i> Profile</a>
+                        <a class="nav-link" href="{% url 'settings' %}"><i class="fa-solid fa-cog me-1"></i> Settings</a>
+                        <span class="navbar-text mx-lg-3"><i class="fa-regular fa-circle-user me-1"></i> {{ user.username }}</span>
+                        <a class="nav-link text-warning" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</a>
+                    {% else %}
+                        <a class="nav-link" href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a>
+                        <a class="nav-link btn btn-primary text-white ms-lg-2 px-3" href="{% url 'signup' %}">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="app-shell">
+        {% if messages %}
+            <div class="mb-3">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            <p class="mb-0">ResearchFlow: Elevating research management.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'site.js' %}"></script>
+    <script>
+        (function(){
+            const theme = localStorage.getItem('themeMode') || 'light';
+            if(theme === 'dark') document.body.classList.add('dark-mode');
+            window.toggleTheme = function(mode){
+                const useDark = mode === 'dark';
+                document.body.classList.toggle('dark-mode', useDark);
+                localStorage.setItem('themeMode', useDark ? 'dark' : 'light');
+            };
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'dashboard' %}" class="text-decoration-none mb-2 d-inline-block"><i class="fa-solid fa-arrow-left me-1"></i> Back to Admin Dashboard</a>
+        <h1 class="mb-0"><i class="fa-solid fa-file-lines text-primary me-2"></i> All Papers</h1>
+    </div>
+</div>
+
+<div class="panel shadow-sm border-0">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <form class="d-flex gap-2" method="get">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                <input type="search" name="q" value="{{ query }}" class="form-control border-start-0 ps-0" style="min-width: 250px;" placeholder="Search title, student, journal...">
+            </div>
+            
+            <select name="status" class="form-select" style="min-width: 150px;">
+                <option value="">All Statuses</option>
+                {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{% url 'admin_all_papers' %}" class="btn btn-outline-secondary">Clear</a>
+        </form>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Student</th>
+                    <th>Supervisor</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th class="text-end">Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for paper in papers %}
+                <tr>
+                    <td class="fw-bold">
+                        {{ paper.title }}
+                        <div class="small text-muted fw-normal"><i class="fa-regular fa-calendar me-1"></i> {{ paper.created_at|date:"M d, Y" }}</div>
+                    </td>
+                    <td>@{{ paper.student.username }}</td>
+                    <td>{% if paper.supervisor %}@{{ paper.supervisor.username }}{% else %}<span class="text-muted">Unassigned</span>{% endif %}</td>
+                    <td>{{ paper.category.name|default:"-" }}</td>
+                    <td><span class="status-pill status-{{ paper.status }}">{{ paper.get_status_display }}</span></td>
+                    <td class="text-end text-primary fw-bold">{{ paper.final_score }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center py-5 text-muted">No papers found matching criteria.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

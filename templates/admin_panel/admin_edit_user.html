@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'admin_users' %}" class="text-decoration-none mb-2 d-inline-block"><i class="fa-solid fa-arrow-left me-1"></i> Back to Users</a>
+    <h1 class="mb-0"><i class="fa-solid fa-user-pen text-primary me-2"></i> Edit User: @{{ target_user.username }}</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="panel shadow-sm border-0">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold small">First Name</label>
+                    <input type="text" name="first_name" class="form-control" value="{{ target_user.first_name }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold small">Last Name</label>
+                    <input type="text" name="last_name" class="form-control" value="{{ target_user.last_name }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold small">Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ target_user.email }}">
+                </div>
+                
+                {% if profile %}
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold small">Role</label>
+                    <select name="role" class="form-select">
+                        {% for value, label in role_choices %}
+                            <option value="{{ value }}" {% if profile.role == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="mb-4 form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" role="switch" name="is_active" id="isActiveSwitch" {% if target_user.is_active %}checked{% endif %}>
+                    <label class="form-check-label fw-bold" for="isActiveSwitch">Account Active</label>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                    {% if target_user.is_active %}
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deactivateModal">Deactivate User</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if target_user.is_active %}
+<!-- Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom-0">
+        <h1 class="modal-title fs-5" id="deactivateModalLabel">Confirm Deactivation</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to deactivate <strong>@{{ target_user.username }}</strong>? They will not be able to log in.
+      </div>
+      <div class="modal-footer border-top-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" action="{% url 'admin_delete_user' target_user.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, Deactivate</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

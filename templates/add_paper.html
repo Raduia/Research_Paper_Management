@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel">
+            <p class="text-muted mb-1">New submission</p>
+            <h1 class="h3 mb-4">Add Research Paper</h1>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div class="row g-3">
+                    {% for field in form %}
+                        <div class="{% if field.name == 'abstract' or field.name == 'pdf' %}col-12{% else %}col-md-6{% endif %}">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.name == 'pdf' %}
+                                <div class="form-text">PDF only, maximum 10MB.</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Save Draft</button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel">
+            <h2 class="h5">Submission Checklist</h2>
+            <ul class="mb-0">
+                <li>Use a clear research title.</li>
+                <li>Add co-authors separated by commas.</li>
+                <li>Select a supervisor before final submission.</li>
+                <li>Attach the latest PDF draft for review.</li>
+                <li>Use deadline to track review urgency.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

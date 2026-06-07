@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+                <div>
+                    <p class="text-muted mb-1">Evaluation rubric</p>
+                    <h1 class="h3 mb-1">{{ paper.title }}</h1>
+                    <p class="text-muted mb-0">Student: {{ paper.student.username }}</p>
+                </div>
+                <span class="status-pill status-{{ paper.status }}">{{ paper.get_status_display }}</span>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div class="row g-3">
+                    {% for field in form %}
+                        <div class="{% if field.name == 'feedback' %}col-12{% else %}col-md-6{% endif %}">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Submit Evaluation</button>
+                    <a href="{% url 'request_revision' paper.id %}" class="btn btn-outline-primary">Request Revision</a>
+                    <a href="{% url 'approve_paper' paper.id %}" class="btn btn-success">Approve</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel mb-4">
+            <h2 class="h5">Score Breakdown</h2>
+            <p class="mb-1"><strong>Current quality:</strong> {{ paper.current_score }}</p>
+            <p class="mb-1"><strong>Previous quality:</strong> {{ paper.previous_score }}</p>
+            <p class="mb-1"><strong>Improvement:</strong> {{ paper.improvement_bonus }}</p>
+            <p class="mb-0"><strong>Final score:</strong> {{ paper.final_score }}</p>
+        </div>
+        <div class="panel">
+            <h2 class="h5">Previous Evaluations</h2>
+            {% for evaluation in previous_evaluations %}
+                <div class="border-bottom pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ evaluation.total_score }}</strong>
+                        <span class="text-muted small">{{ evaluation.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <p class="small text-muted mb-0">{{ evaluation.feedback|default:'No feedback text.' }}</p>
+                </div>
+            {% empty %}
+                <p class="text-muted mb-0">No previous evaluations.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
