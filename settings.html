@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="panel">
+            <h1 class="h3 mb-2">Settings</h1>
+            <p class="text-muted mb-4">Update account details and workspace preferences.</p>
+
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">First name</label>
+                        <input class="form-control" name="first_name" value="{{ user.first_name }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Last name</label>
+                        <input class="form-control" name="last_name" value="{{ user.last_name }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" value="{{ user.email }}">
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" type="submit">Save Settings</button>
+            </form>
+
+            <div class="border-top pt-4 mb-4">
+                <h2 class="h5">Dark mode</h2>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="themeSwitch">
+                    <label class="form-check-label" for="themeSwitch">Enable dark mode</label>
+                </div>
+            </div>
+
+            <div class="border-top pt-4">
+                <h2 class="h5">Account security</h2>
+                <a href="{% url 'password_change' %}" class="btn btn-outline-primary">Change Password</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const themeSwitch = document.getElementById('themeSwitch');
+    const mode = localStorage.getItem('themeMode') || 'light';
+    themeSwitch.checked = mode === 'dark';
+    themeSwitch.addEventListener('change', (event) => {
+        window.toggleTheme(event.target.checked ? 'dark' : 'light');
+    });
+});
+</script>
+{% endblock %}
